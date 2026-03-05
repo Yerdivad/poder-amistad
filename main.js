@@ -19,6 +19,9 @@ let powerTimeout = null;
 let powerEndTimeout = null;
 let MAX_POWER = 100;
 let receivingPower = false;
+let onlineUsersCount = 1;
+let chargesReceived = 0;
+let targetCharges = 1;
 
 function checkUserName() {
     const nameModal = document.getElementById('nameModal');
@@ -59,6 +62,10 @@ socket.on('connect', () => {
     requestPowerBtn.disabled = false;
 });
 
+socket.on('online_users', (count) => {
+    onlineUsersCount = count;
+});
+
 // Cuando el usuario hace click en "Invocar Poder"
 requestPowerBtn.addEventListener('click', () => {
     const userName = localStorage.getItem('userName') || 'Alguien';
@@ -67,6 +74,8 @@ requestPowerBtn.addEventListener('click', () => {
     // Update state
     receivingPower = true;
     currentPower = 0;
+    chargesReceived = 0;
+    targetCharges = Math.max(1, onlineUsersCount - 1); // Descontar al propio usuario
     clearTimeout(powerEndTimeout); // Asegurarse de que no esconda la barra si vuelve a invocar rápido
     updatePowerBar();
 
@@ -118,17 +127,36 @@ socket.on('power_received', (data) => {
     createParticleAnimation();
     showSenderFloatingText(data.senderName || 'Alguien');
 
+    chargesReceived++;
+    currentPower = Math.min(MAX_POWER, (chargesReceived / targetCharges) * 100);
+
     setTimeout(() => {
-        currentPower = Math.min(MAX_POWER, currentPower + 35); // Big boost for DEMO speed
         updatePowerBar();
 
         if (currentPower >= MAX_POWER) {
+            receivingPower = false;
+            clearTimeout(powerTimeout);
+            clearTimeout(powerEndTimeout);
+
             powerStatus.textContent = '⚡ ¡PODER MÁXIMO ALCANZADO! ⚡';
             powerStatus.style.color = 'var(--primary)';
             powerFill.style.background = '';
             powerFill.style.boxShadow = '';
 
             document.body.style.animation = 'pulseBg 0.5s ease 2';
+            cancelPowerBtn.style.display = 'none';
+
+            showRewardAnimation();
+
+            powerEndTimeout = setTimeout(() => {
+                powerContainer.classList.remove('active');
+                currentPower = 0;
+                updatePowerBar();
+                powerStatus.textContent = `Nivel de Energía: 0%`;
+                powerStatus.style.color = '';
+                requestPowerBtn.innerHTML = '<span class="icon">✨</span> Invocar Poder';
+                requestPowerBtn.disabled = false;
+            }, 5000);
         }
     }, 1000); // Matches particle flight duration
 });
@@ -141,7 +169,11 @@ function updatePowerBar() {
 }
 
 function showNotification(requesterId, requesterName = null) {
-    const notifId = 'notif-' + Date.now();
+    const notifId = 'notif-' + requesterId;
+
+    // Previene notificaciones duplicadas (e.g. al hacer click en el push mientras ya estás conectado por socket)
+    if (document.getElementById(notifId)) return;
+
     const el = document.createElement('div');
     el.className = 'notification';
     el.id = notifId;
@@ -266,6 +298,35 @@ function createParticleAnimation() {
             if (p.parentNode) p.parentNode.removeChild(p);
         }, 2000);
     }
+}
+
+function showRewardAnimation() {
+    let overlay = document.getElementById('rewardOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'rewardOverlay';
+        overlay.className = 'reward-overlay';
+        overlay.innerHTML = `
+            <div class="reward-box">
+                <div class="reward-title">¡MISIÓN CUMPLIDA!</div>
+                <div class="reward-text">Vínculo completado. Poder al 100%.</div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    // Trigger reflow
+    void overlay.offsetWidth;
+    overlay.classList.add('active');
+
+    // Confetti / Sparks explosion
+    for (let i = 0; i < 30; i++) {
+        setTimeout(createParticleAnimation, i * 100);
+    }
+
+    setTimeout(() => {
+        overlay.classList.remove('active');
+    }, 4000);
 }
 
 // ---- PUSH NOTIFICATION LOGIC ----

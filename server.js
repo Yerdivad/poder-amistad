@@ -27,6 +27,7 @@ let subscriptions = [];
 
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
+    io.emit('online_users', io.engine.clientsCount);
 
     // Provide VAPID key via Socket instead of Fetch
     socket.emit('vapid_key', vapidKeys.publicKey);
@@ -79,6 +80,7 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
+        io.emit('online_users', io.engine.clientsCount);
     });
 });
 
