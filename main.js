@@ -17,9 +17,40 @@ let currentPower = 0;
 let MAX_POWER = 100;
 let receivingPower = false;
 
+function checkUserName() {
+    const nameModal = document.getElementById('nameModal');
+    const nameInput = document.getElementById('nameInput');
+    const saveNameBtn = document.getElementById('saveNameBtn');
+
+    if (!localStorage.getItem('userName')) {
+        nameModal.style.display = 'flex';
+        nameInput.focus();
+
+        const saveName = () => {
+            const val = nameInput.value.trim();
+            if (val) {
+                localStorage.setItem('userName', val);
+                userIdSpan.textContent = val;
+                nameModal.style.display = 'none';
+            }
+        };
+
+        saveNameBtn.addEventListener('click', saveName);
+        nameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') saveName();
+        });
+    }
+}
+
 // Al conectar, mostramos el ID de usuario
 socket.on('connect', () => {
-    userIdSpan.textContent = socket.id.substring(0, 5).toUpperCase();
+    checkUserName();
+
+    if (localStorage.getItem('userName')) {
+        userIdSpan.textContent = localStorage.getItem('userName');
+    } else {
+        userIdSpan.textContent = socket.id.substring(0, 5).toUpperCase();
+    }
     userIdSpan.style.color = '#c084fc';
     userIdSpan.style.fontWeight = '800';
     requestPowerBtn.disabled = false;
@@ -27,7 +58,8 @@ socket.on('connect', () => {
 
 // Cuando el usuario hace click en "Invocar Poder"
 requestPowerBtn.addEventListener('click', () => {
-    socket.emit('request_power');
+    const userName = localStorage.getItem('userName') || 'Alguien';
+    socket.emit('request_power', { requesterName: userName });
 
     // Update state
     receivingPower = true;
@@ -60,7 +92,7 @@ requestPowerBtn.addEventListener('click', () => {
 
 // Cuando alguien más invoca el poder
 socket.on('power_requested', (data) => {
-    showNotification(data.requesterId);
+    showNotification(data.requesterId, data.requesterName);
 });
 
 // Cuando recibimos poder
@@ -91,13 +123,14 @@ function updatePowerBar() {
     }
 }
 
-function showNotification(requesterId) {
+function showNotification(requesterId, requesterName = null) {
     const notifId = 'notif-' + Date.now();
     const el = document.createElement('div');
     el.className = 'notification';
     el.id = notifId;
 
     const shortId = requesterId.substring(0, 5).toUpperCase();
+    const displayName = requesterName || shortId;
 
     el.innerHTML = `
     <div class="notification-header">
@@ -105,7 +138,7 @@ function showNotification(requesterId) {
       <div class="notification-title">¡Llamada de Amistad!</div>
     </div>
     <div class="notification-body">
-      El usuario <strong style="color: #ec4899;">${shortId}</strong> ha invocado el Poder de la Amistad. ¡Ayúdale a reunir energía!
+      <strong style="color: #ec4899;">${displayName}</strong> ha invocado el Poder de la Amistad. ¡Ayúdale a reunir energía!
     </div>
     <button class="action-btn" id="btn-${notifId}">
       🌟 Enviar Poder
@@ -200,15 +233,16 @@ function createParticleAnimation() {
 // ---- PUSH NOTIFICATION LOGIC ----
 const urlParams = new URLSearchParams(window.location.search);
 const reqId = urlParams.get('requesterId');
+const reqName = urlParams.get('requesterName');
 if (reqId) {
     // Si la app se abrió al tocar una notificación en Android
-    showNotification(reqId);
+    showNotification(reqId, reqName);
     window.history.replaceState({}, document.title, "/");
 }
 
 navigator.serviceWorker && navigator.serviceWorker.addEventListener('message', event => {
     if (event.data && event.data.type === 'push_clicked') {
-        showNotification(event.data.requesterId);
+        showNotification(event.data.requesterId, event.data.requesterName);
     }
 });
 

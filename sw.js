@@ -24,7 +24,13 @@ self.addEventListener('notificationclick', function (event) {
     event.notification.close();
 
     const requesterId = event.notification.data ? event.notification.data.requesterId : null;
-    const url = requesterId ? '/?requesterId=' + requesterId : '/';
+    const requesterName = event.notification.data ? event.notification.data.requesterName : null;
+
+    let url = '/';
+    if (requesterId) {
+        url = '/?requesterId=' + requesterId;
+        if (requesterName) url += '&requesterName=' + encodeURIComponent(requesterName);
+    }
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
@@ -32,7 +38,7 @@ self.addEventListener('notificationclick', function (event) {
                 if ('focus' in client) {
                     return client.focus().then(() => {
                         if (requesterId) {
-                            client.postMessage({ type: 'push_clicked', requesterId: requesterId });
+                            client.postMessage({ type: 'push_clicked', requesterId: requesterId, requesterName: requesterName });
                         }
                     });
                 }

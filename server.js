@@ -44,15 +44,17 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('request_power', () => {
+    socket.on('request_power', (data = {}) => {
+        const name = data.requesterName || 'Alguien';
+
         // Broadcast via websockets for users with the app open
-        socket.broadcast.emit('power_requested', { requesterId: socket.id });
+        socket.broadcast.emit('power_requested', { requesterId: socket.id, requesterName: name });
 
         // Send push notification to all subscribed users (e.g. Android background)
         const payload = JSON.stringify({
             title: '¡Llamada de Amistad!',
-            body: 'Alguien ha invocado el Poder de la Amistad. ¡Ayúdale!',
-            data: { requesterId: socket.id }
+            body: `${name} ha invocado el Poder de la Amistad. ¡Ayúdale!`,
+            data: { requesterId: socket.id, requesterName: name }
         });
 
         subscriptions.forEach(sub => {
