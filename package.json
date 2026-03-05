@@ -1,0 +1,22 @@
+{
+  "name": "poder-amistad",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "server": "node server.js",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "vite": "^7.3.1"
+  }
+}

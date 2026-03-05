@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.json">
+    <title>Poder de la Amistad</title>
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="app">
+        <div class="glass-panel">
+            <h1>Poder de la Amistad</h1>
+            <p class="subtitle">Comparte tu energía vital con la comunidad</p>
+
+            <div class="user-info">Tu ID: <span id="userId">Conectando...</span></div>
+
+            <button id="requestPowerBtn" class="primary-btn glow-effect" disabled>
+                <span class="icon">✨</span> Invocar Poder
+            </button>
+
+            <div id="powerContainer" class="power-container">
+                <div class="power-level-bar">
+                    <div class="power-fill" id="powerFill"></div>
+                </div>
+                <div class="power-status" id="powerStatus">Nivel de Energía: 0%</div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="pushBanner" class="notification"
+        style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; margin: 0; width: 90%; max-width: 400px; text-align: center; border-left: none; border-bottom: 5px solid var(--primary); background: rgba(15, 23, 42, 0.95);">
+        <div id="pushBannerText" class="notification-body"
+            style="margin-bottom: 10px; font-weight: bold; font-size: 1.05em;">¿Quieres poder de otras pestañas?</div>
+        <div id="pushBannerSub" class="notification-body" style="margin-bottom: 15px; font-size: 0.9em;">(Recomendado:
+            Android vibrará incluso con el navegador cerrado)</div>
+        <button id="enablePushBtn" class="action-btn"
+            style="background: linear-gradient(135deg, var(--primary), var(--secondary)); font-size: 0.9em; padding: 10px;">🔔
+            Suscribirse a las Notificaciones</button>
+    </div>
+
+    <div id="notificationsContainer" class="notifications-container"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module" src="/main.js"></script>
+</body>
+
+</html>
