@@ -2,7 +2,7 @@
   "name": "poder-amistad",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "dev": "vite",
     "server": "node server.js",
