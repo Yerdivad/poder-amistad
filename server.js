@@ -73,7 +73,8 @@ io.on('connection', (socket) => {
     });
 
     socket.on('send_power', (data) => {
-        io.to(data.toId).emit('power_received', { senderId: socket.id });
+        const name = data.senderName || 'Alguien';
+        io.to(data.toId).emit('power_received', { senderId: socket.id, senderName: name });
     });
 
     socket.on('disconnect', () => {

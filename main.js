@@ -116,6 +116,7 @@ socket.on('power_received', (data) => {
     if (!receivingPower) return;
 
     createParticleAnimation();
+    showSenderFloatingText(data.senderName || 'Alguien');
 
     setTimeout(() => {
         currentPower = Math.min(MAX_POWER, currentPower + 35); // Big boost for DEMO speed
@@ -165,7 +166,8 @@ function showNotification(requesterId, requesterName = null) {
 
     const btn = el.querySelector(`#btn-${notifId}`);
     btn.addEventListener('click', () => {
-        socket.emit('send_power', { toId: requesterId });
+        const userName = localStorage.getItem('userName') || 'Alguien';
+        socket.emit('send_power', { toId: requesterId, senderName: userName });
 
         btn.innerHTML = '✨ ¡Enviado!';
         btn.style.background = 'transparent';
@@ -192,6 +194,26 @@ function removeNotification(id) {
             if (el.parentNode) el.parentNode.removeChild(el);
         }, 400);
     }
+}
+
+function showSenderFloatingText(senderName) {
+    const pContainer = document.getElementById('powerContainer');
+    if (!pContainer) return;
+
+    const textEl = document.createElement('div');
+    textEl.className = 'floating-sender-text';
+
+    // Tiny random offset to avoid exact overlap if multiple users send at the exact same millisecond
+    const offsetX = (Math.random() - 0.5) * 40;
+    textEl.style.marginLeft = `${offsetX}px`;
+
+    textEl.innerHTML = `¡<strong>${senderName}</strong> te envía poder! 💖`;
+
+    pContainer.appendChild(textEl);
+
+    setTimeout(() => {
+        if (textEl.parentNode) textEl.parentNode.removeChild(textEl);
+    }, 2500);
 }
 
 function createParticleAnimation() {

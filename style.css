@@ -151,6 +151,7 @@ h1 {
 }
 
 .power-container {
+    position: relative;
     margin-top: 50px;
     opacity: 0;
     transform: translateY(20px);
@@ -381,4 +382,40 @@ h1 {
 .cancel-btn:hover {
     background: rgba(236, 72, 153, 0.1);
     box-shadow: 0 0 15px rgba(236, 72, 153, 0.3);
+}
+
+.floating-sender-text {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #34d399;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 50;
+    animation: floatUpAndFade 2.5s ease forwards;
+}
+
+@keyframes floatUpAndFade {
+    0% {
+        transform: translate(-50%, 0) scale(0.5);
+        opacity: 0;
+    }
+
+    15% {
+        transform: translate(-50%, -15px) scale(1.1);
+        opacity: 1;
+        text-shadow: 0 0 15px rgba(52, 211, 153, 0.8);
+    }
+
+    80% {
+        transform: translate(-50%, -40px) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -60px) scale(0.9);
+        opacity: 0;
+    }
 }
