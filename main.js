@@ -54,8 +54,8 @@ socket.on('connect', () => {
     } else {
         userIdSpan.textContent = socket.id.substring(0, 5).toUpperCase();
     }
-    userIdSpan.style.color = '#c084fc';
-    userIdSpan.style.fontWeight = '800';
+    userIdSpan.style.color = '';
+    userIdSpan.style.fontWeight = '';
     requestPowerBtn.disabled = false;
 });
 
@@ -88,9 +88,9 @@ requestPowerBtn.addEventListener('click', () => {
             currentPower = 0;
             updatePowerBar();
             powerStatus.textContent = `Nivel de Energía: 0%`;
-            powerStatus.style.color = '#fbbf24';
-            powerFill.style.background = 'linear-gradient(90deg, #fbbf24, #f59e0b)';
-            powerFill.style.boxShadow = '0 0 15px #f59e0b';
+            powerStatus.style.color = '';
+            powerFill.style.background = '';
+            powerFill.style.boxShadow = '';
         }, 4000); // Leaves the full bar for 4s before closing
     };
 
@@ -124,9 +124,9 @@ socket.on('power_received', (data) => {
 
         if (currentPower >= MAX_POWER) {
             powerStatus.textContent = '⚡ ¡PODER MÁXIMO ALCANZADO! ⚡';
-            powerStatus.style.color = '#34d399';
-            powerFill.style.background = 'linear-gradient(90deg, #10b981, #34d399)';
-            powerFill.style.boxShadow = '0 0 20px #34d399';
+            powerStatus.style.color = 'var(--primary)';
+            powerFill.style.background = '';
+            powerFill.style.boxShadow = '';
 
             document.body.style.animation = 'pulseBg 0.5s ease 2';
         }
@@ -152,13 +152,13 @@ function showNotification(requesterId, requesterName = null) {
     el.innerHTML = `
     <div class="notification-header">
       <div class="notification-icon">🙌</div>
-      <div class="notification-title">¡Llamada de Amistad!</div>
+      <div class="notification-title">¡TRANSFERENCIA!</div>
     </div>
     <div class="notification-body">
-      <strong style="color: #ec4899;">${displayName}</strong> ha invocado el Poder de la Amistad. ¡Ayúdale a reunir energía!
+      <strong>${displayName}</strong> necesita un impulso de energía. ¡Manda tu poder!
     </div>
     <button class="action-btn" id="btn-${notifId}">
-      🌟 Enviar Poder
+      🌟 TRANSFERIR PODER
     </button>
   `;
 
@@ -169,10 +169,10 @@ function showNotification(requesterId, requesterName = null) {
         const userName = localStorage.getItem('userName') || 'Alguien';
         socket.emit('send_power', { toId: requesterId, senderName: userName });
 
-        btn.innerHTML = '✨ ¡Enviado!';
-        btn.style.background = 'transparent';
-        btn.style.border = '2px solid #34d399';
-        btn.style.color = '#34d399';
+        btn.innerHTML = '✨ ¡TRANSFERIDO!';
+        btn.style.background = 'var(--dark-lcd)';
+        btn.style.border = '2px solid var(--green-lcd)';
+        btn.style.color = 'var(--green-lcd)';
         btn.style.boxShadow = 'none';
         btn.disabled = true;
 
