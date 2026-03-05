@@ -28,6 +28,9 @@
                     <div class="power-fill" id="powerFill"></div>
                 </div>
                 <div class="power-status" id="powerStatus">Nivel de Energía: 0%</div>
+                <button id="cancelPowerBtn" class="cancel-btn" style="display: none; margin-top: 15px;">
+                    ✖ Cancelar Invocación
+                </button>
             </div>
         </div>
     </div>
@@ -35,10 +38,15 @@
     <!-- Modal for User Name -->
     <div id="nameModal" class="modal-overlay" style="display: none;">
         <div class="glass-panel modal-content" style="max-width: 400px; padding: 40px 30px;">
-            <h2 style="font-size: 2rem; margin-bottom: 10px; background: linear-gradient(to right, #c084fc, #f472b6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">¡Hola!</h2>
-            <p class="subtitle" style="margin-bottom: 25px; font-size: 1rem;">¿Cómo quieres que te llamen los demás cuando invoques el poder?</p>
-            <input type="text" id="nameInput" class="name-input" placeholder="Tu nombre..." maxlength="15" autocomplete="off" />
-            <button id="saveNameBtn" class="primary-btn glow-effect" style="padding: 12px 24px; font-size: 1.1rem; width: 100%; margin-top: 15px;">
+            <h2
+                style="font-size: 2rem; margin-bottom: 10px; background: linear-gradient(to right, #c084fc, #f472b6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                ¡Hola!</h2>
+            <p class="subtitle" style="margin-bottom: 25px; font-size: 1rem;">¿Cómo quieres que te llamen los demás
+                cuando invoques el poder?</p>
+            <input type="text" id="nameInput" class="name-input" placeholder="Tu nombre..." maxlength="15"
+                autocomplete="off" />
+            <button id="saveNameBtn" class="primary-btn glow-effect"
+                style="padding: 12px 24px; font-size: 1.1rem; width: 100%; margin-top: 15px;">
                 Empezar
             </button>
         </div>

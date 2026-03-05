@@ -12,8 +12,11 @@ const notificationsContainer = document.getElementById('notificationsContainer')
 const powerContainer = document.getElementById('powerContainer');
 const powerFill = document.getElementById('powerFill');
 const powerStatus = document.getElementById('powerStatus');
+const cancelPowerBtn = document.getElementById('cancelPowerBtn');
 
 let currentPower = 0;
+let powerTimeout = null;
+let powerEndTimeout = null;
 let MAX_POWER = 100;
 let receivingPower = false;
 
@@ -64,21 +67,23 @@ requestPowerBtn.addEventListener('click', () => {
     // Update state
     receivingPower = true;
     currentPower = 0;
+    clearTimeout(powerEndTimeout); // Asegurarse de que no esconda la barra si vuelve a invocar rápido
     updatePowerBar();
 
     // UI Updates
     requestPowerBtn.innerHTML = '<span class="icon">⌛</span> Invocando...';
     requestPowerBtn.disabled = true;
+    cancelPowerBtn.style.display = 'inline-block';
     powerContainer.classList.add('active');
 
-    // Re-enable after 10 seconds of listening
-    setTimeout(() => {
+    const resetPowerState = () => {
         receivingPower = false;
         requestPowerBtn.innerHTML = '<span class="icon">✨</span> Invocar Poder';
         requestPowerBtn.disabled = false;
+        cancelPowerBtn.style.display = 'none';
 
         // Hide power bar and reset shortly after
-        setTimeout(() => {
+        powerEndTimeout = setTimeout(() => {
             powerContainer.classList.remove('active');
             currentPower = 0;
             updatePowerBar();
@@ -87,7 +92,18 @@ requestPowerBtn.addEventListener('click', () => {
             powerFill.style.background = 'linear-gradient(90deg, #fbbf24, #f59e0b)';
             powerFill.style.boxShadow = '0 0 15px #f59e0b';
         }, 4000); // Leaves the full bar for 4s before closing
-    }, 10000);
+    };
+
+    // Re-enable after 5 minutes (300000 ms) of listening
+    powerTimeout = setTimeout(() => {
+        resetPowerState();
+    }, 300000);
+
+    // Detener invocación manualmente
+    cancelPowerBtn.onclick = () => {
+        clearTimeout(powerTimeout);
+        resetPowerState();
+    };
 });
 
 // Cuando alguien más invoca el poder
@@ -165,7 +181,7 @@ function showNotification(requesterId, requesterName = null) {
 
     setTimeout(() => {
         removeNotification(notifId);
-    }, 15000);
+    }, 300000); // 5 minutos de tiempo límite
 }
 
 function removeNotification(id) {
