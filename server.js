@@ -48,10 +48,26 @@ if (MONGODB_URI) {
         })
         .catch(err => console.error("❌ Error conectando a MongoDB:", err));
 }
+let connectedUsers = {};
 
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
-    io.emit('online_users', io.engine.clientsCount);
+
+    connectedUsers[socket.id] = { id: socket.id, name: 'Anónimo' };
+
+    // Function to broadcast users safely
+    const broadcastUsers = () => {
+        io.emit('online_users', Object.values(connectedUsers));
+    };
+
+    broadcastUsers();
+
+    socket.on('set_user_name', (name) => {
+        if (connectedUsers[socket.id]) {
+            connectedUsers[socket.id].name = name;
+            broadcastUsers();
+        }
+    });
 
     // Provide VAPID key via Socket instead of Fetch
     socket.emit('vapid_key', vapidKeys.publicKey);
@@ -87,9 +103,10 @@ io.on('connection', (socket) => {
 
         // Send push notification to all subscribed users (e.g. Android background)
         const payload = JSON.stringify({
-            title: '¡Llamada de Amistad!',
-            body: `${name} ha invocado el Poder de la Amistad. ¡Ayúdale!`,
-            data: { requesterId: socket.id, requesterName: name }
+            title: '¡Llamada de TRANSFERENCIA!',
+            body: `${name} necesita un impulso de energía. ¡Manda tu poder!`,
+            data: { requesterId: socket.id, requesterName: name },
+            tag: socket.id // <-- tag para cerrarla luego
         });
 
         subscriptions.forEach(sub => {
@@ -115,9 +132,35 @@ io.on('connection', (socket) => {
         io.to(data.toId).emit('power_received', { senderId: socket.id, senderName: name });
     });
 
+    socket.on('clear_power_request', () => {
+        // Enviar push de cierre a todos los que recibieron la petición
+        const closePayload = JSON.stringify({ action: 'close', tag: socket.id });
+        subscriptions.forEach(sub => {
+            if (sub.socketId !== socket.id) {
+                webpush.sendNotification(sub, closePayload).catch(() => { });
+            }
+        });
+    });
+
+    socket.on('mission_complete_push', () => {
+        const successPayload = JSON.stringify({
+            title: '¡Misión Cumplida! 🌟',
+            body: '¡Has recibido toda la energía requerida!',
+            data: {},
+            tag: 'success_mission',
+            actionTitle: 'Ver'
+        });
+        subscriptions.forEach(sub => {
+            if (sub.socketId === socket.id) {
+                webpush.sendNotification(sub, successPayload).catch(console.error);
+            }
+        });
+    });
+
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
-        io.emit('online_users', io.engine.clientsCount);
+        delete connectedUsers[socket.id];
+        broadcastUsers();
     });
 });
 

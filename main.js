@@ -20,6 +20,7 @@ let powerEndTimeout = null;
 let MAX_POWER = 100;
 let receivingPower = false;
 let onlineUsersCount = 1;
+let onlineUsers = [];
 let chargesReceived = 0;
 let targetCharges = 1;
 
@@ -37,6 +38,7 @@ function checkUserName() {
             if (val) {
                 localStorage.setItem('userName', val);
                 userIdSpan.textContent = val;
+                socket.emit('set_user_name', val);
                 nameModal.style.display = 'none';
             }
         };
@@ -54,16 +56,20 @@ socket.on('connect', () => {
 
     if (localStorage.getItem('userName')) {
         userIdSpan.textContent = localStorage.getItem('userName');
+        socket.emit('set_user_name', localStorage.getItem('userName'));
     } else {
         userIdSpan.textContent = socket.id.substring(0, 5).toUpperCase();
+        socket.emit('set_user_name', userIdSpan.textContent);
     }
     userIdSpan.style.color = '';
     userIdSpan.style.fontWeight = '';
     requestPowerBtn.disabled = false;
 });
 
-socket.on('online_users', (count) => {
-    onlineUsersCount = count;
+socket.on('online_users', (users) => {
+    onlineUsers = users.filter(u => u.id !== socket.id);
+    onlineUsersCount = users.length;
+    renderUserSpheres();
 });
 
 // Cuando el usuario hace click en "Invocar Poder"
@@ -112,6 +118,7 @@ requestPowerBtn.addEventListener('click', () => {
     cancelPowerBtn.onclick = () => {
         clearTimeout(powerTimeout);
         resetPowerState();
+        socket.emit('clear_power_request');
     };
 });
 
@@ -127,6 +134,12 @@ socket.on('power_received', (data) => {
     createParticleAnimation();
     showSenderFloatingText(data.senderName || 'Alguien');
 
+    const sphere = document.getElementById('sphere-' + data.senderId);
+    if (sphere) {
+        sphere.classList.add('pop');
+        setTimeout(() => { if (sphere.parentNode) sphere.parentNode.removeChild(sphere); }, 500);
+    }
+
     chargesReceived++;
     currentPower = Math.min(MAX_POWER, (chargesReceived / targetCharges) * 100);
 
@@ -137,6 +150,9 @@ socket.on('power_received', (data) => {
             receivingPower = false;
             clearTimeout(powerTimeout);
             clearTimeout(powerEndTimeout);
+
+            socket.emit('mission_complete_push');
+            socket.emit('clear_power_request');
 
             powerStatus.textContent = '⚡ ¡PODER MÁXIMO ALCANZADO! ⚡';
             powerStatus.style.color = 'var(--primary)';
@@ -246,6 +262,32 @@ function showSenderFloatingText(senderName) {
     setTimeout(() => {
         if (textEl.parentNode) textEl.parentNode.removeChild(textEl);
     }, 2500);
+}
+
+function renderUserSpheres() {
+    let container = document.getElementById('spheresContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'spheresContainer';
+        document.body.appendChild(container);
+    }
+    container.innerHTML = '';
+
+    onlineUsers.forEach((user, index) => {
+        const sphere = document.createElement('div');
+        sphere.className = 'user-sphere';
+        sphere.id = 'sphere-' + user.id;
+
+        // Randomly place it within viewport bounds
+        const x = 5 + Math.random() * 80; // 5% to 85% 
+        const y = 5 + Math.random() * 80;
+        sphere.style.left = x + 'vw';
+        sphere.style.top = y + 'vh';
+        sphere.style.animationDelay = (Math.random() * 2) + 's';
+
+        sphere.innerHTML = `<span class="sphere-name">${user.name}</span>`;
+        container.appendChild(sphere);
+    });
 }
 
 function createParticleAnimation() {
