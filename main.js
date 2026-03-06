@@ -156,7 +156,7 @@ socket.on('power_received', (data) => {
                 powerStatus.style.color = '';
                 requestPowerBtn.innerHTML = '<span class="icon">✨</span> Invocar Poder';
                 requestPowerBtn.disabled = false;
-            }, 5000);
+            }, 16000);
         }
     }, 1000); // Matches particle flight duration
 });
@@ -307,26 +307,36 @@ function showRewardAnimation() {
         overlay.id = 'rewardOverlay';
         overlay.className = 'reward-overlay';
         overlay.innerHTML = `
+            <div class="video-container">
+                <iframe src="https://www.youtube.com/embed/mlGycbFxrSE?autoplay=1&start=0&end=15&controls=0&modestbranding=1&rel=0&showinfo=0&mute=0" allow="autoplay; encrypted-media" frameborder="0"></iframe>
+            </div>
             <div class="reward-box">
-                <div class="reward-title">¡MISIÓN CUMPLIDA!</div>
-                <div class="reward-text">Vínculo completado. Poder al 100%.</div>
+                <div class="reward-title" style="font-size: 2.2rem;">¡MISIÓN CUMPLIDA!</div>
+                <div class="reward-text" style="font-size: 1.2rem;">Vínculo completado.</div>
             </div>
         `;
         document.body.appendChild(overlay);
+    } else {
+        // Refrescar el iframe para que vuelva a reproducirse desde el inicio y con sonido
+        const iframe = overlay.querySelector('iframe');
+        if (iframe) iframe.src = iframe.src;
     }
 
     // Trigger reflow
     void overlay.offsetWidth;
     overlay.classList.add('active');
 
-    // Confetti / Sparks explosion
-    for (let i = 0; i < 30; i++) {
+    // Mantenemos algunas partículas iniciales de celebración
+    for (let i = 0; i < 15; i++) {
         setTimeout(createParticleAnimation, i * 100);
     }
 
     setTimeout(() => {
         overlay.classList.remove('active');
-    }, 4000);
+        // Detener el vídeo borrando su src temporalmente
+        const iframe = overlay.querySelector('iframe');
+        if (iframe) iframe.src = iframe.src;
+    }, 16000);
 }
 
 // ---- PUSH NOTIFICATION LOGIC ----

@@ -506,3 +506,37 @@ h1 {
     font-family: 'VT323', monospace;
     font-size: 1.8rem;
 }
+
+/* YouTube Video Background container */
+.video-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 1;
+    /* Below the reward-box */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: black;
+}
+
+.video-container iframe {
+    height: 100vh;
+    /* Aspect ratio is roughly 16:9, so width = 1.777 * height ensures no black bars top/bottom */
+    width: calc(100vh * (16 / 9));
+    pointer-events: none;
+    border: none;
+    max-width: none;
+}
+
+.reward-overlay .reward-box {
+    position: relative;
+    z-index: 2;
+    /* Above the video */
+    margin-top: auto;
+    margin-bottom: 50px;
+    /* Aligns to bottom over the video */
+}
