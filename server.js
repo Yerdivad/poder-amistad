@@ -2,6 +2,7 @@ const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const webpush = require('web-push');
+const { MongoClient } = require('mongodb');
 
 const app = express();
 app.use(express.static(__dirname));
@@ -25,6 +26,29 @@ webpush.setVapidDetails(
 
 let subscriptions = [];
 
+// Base de datos (Opcional, si MONGODB_URI está definida)
+const MONGODB_URI = process.env.MONGODB_URI;
+let SubscriptionsCollection;
+
+if (MONGODB_URI) {
+    const dbClient = new MongoClient(MONGODB_URI);
+    dbClient.connect()
+        .then(() => {
+            console.log("🚀 Conectado a MongoDB Atlas.");
+            SubscriptionsCollection = dbClient.db('poderamistad').collection('subscriptions');
+            return SubscriptionsCollection.find().toArray();
+        })
+        .then(subs => {
+            // Quitamos el _id de Mongo para no corromper el formato de suscripción Push de web-push
+            subscriptions = subs.map(s => {
+                const { _id, ...rest } = s;
+                return rest;
+            });
+            console.log(`📡 Cargadas ${subscriptions.length} suscripciones persistentes.`);
+        })
+        .catch(err => console.error("❌ Error conectando a MongoDB:", err));
+}
+
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
     io.emit('online_users', io.engine.clientsCount);
@@ -38,9 +62,19 @@ io.on('connection', (socket) => {
         const index = subscriptions.findIndex(s => s.endpoint === subscription.endpoint);
         if (index === -1) {
             subscriptions.push(subscription);
+            if (SubscriptionsCollection) {
+                SubscriptionsCollection.insertOne(subscription).catch(console.error);
+            }
             console.log('--- Nuevo Push Endpoint registrado ---');
         } else {
             subscriptions[index] = subscription;
+            if (SubscriptionsCollection) {
+                SubscriptionsCollection.updateOne(
+                    { endpoint: subscription.endpoint },
+                    { $set: subscription },
+                    { upsert: true }
+                ).catch(console.error);
+            }
             console.log('--- Push Endpoint actualizado ---');
         }
     });
@@ -65,6 +99,9 @@ io.on('connection', (socket) => {
                     if (err.statusCode === 410 || err.statusCode === 404) {
                         console.log('--- Unsuscribing stale endpoint ---');
                         subscriptions = subscriptions.filter(s => s.endpoint !== sub.endpoint);
+                        if (SubscriptionsCollection) {
+                            SubscriptionsCollection.deleteOne({ endpoint: sub.endpoint }).catch(console.error);
+                        }
                     } else {
                         console.error("Push error:", err);
                     }
