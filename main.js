@@ -344,25 +344,23 @@ function createParticleAnimation() {
 
 function showRewardAnimation() {
     let overlay = document.getElementById('rewardOverlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'rewardOverlay';
-        overlay.className = 'reward-overlay';
-        overlay.innerHTML = `
-            <div class="video-container">
-                <iframe src="https://www.youtube.com/embed/mlGycbFxrSE?autoplay=1&start=0&end=15&controls=0&modestbranding=1&rel=0&showinfo=0&mute=0" allow="autoplay; encrypted-media" frameborder="0"></iframe>
-            </div>
-            <div class="reward-box">
-                <div class="reward-title" style="font-size: 2.2rem;">¡MISIÓN CUMPLIDA!</div>
-                <div class="reward-text" style="font-size: 1.2rem;">Vínculo completado.</div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-    } else {
-        // Refrescar el iframe para que vuelva a reproducirse desde el inicio y con sonido
-        const iframe = overlay.querySelector('iframe');
-        if (iframe) iframe.src = iframe.src;
+    if (overlay) {
+        overlay.parentNode.removeChild(overlay);
     }
+
+    overlay = document.createElement('div');
+    overlay.id = 'rewardOverlay';
+    overlay.className = 'reward-overlay';
+    overlay.innerHTML = `
+        <div class="video-container">
+            <iframe src="https://www.youtube.com/embed/mlGycbFxrSE?autoplay=1&start=0&end=15&controls=0&modestbranding=1&rel=0&showinfo=0&mute=0" allow="autoplay; encrypted-media" frameborder="0"></iframe>
+        </div>
+        <div class="reward-box">
+            <div class="reward-title" style="font-size: 2.2rem;">¡MISIÓN CUMPLIDA!</div>
+            <div class="reward-text" style="font-size: 1.2rem;">Vínculo completado.</div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
 
     // Trigger reflow
     void overlay.offsetWidth;
@@ -375,9 +373,10 @@ function showRewardAnimation() {
 
     setTimeout(() => {
         overlay.classList.remove('active');
-        // Detener el vídeo borrando su src temporalmente
-        const iframe = overlay.querySelector('iframe');
-        if (iframe) iframe.src = iframe.src;
+        // Detener el vídeo destruyendo el elemento del DOM al terminar la transición
+        setTimeout(() => {
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }, 500);
     }, 16000);
 }
 
